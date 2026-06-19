@@ -1,0 +1,53 @@
+name: Debug Pake Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Pake CLI
+        run: |
+          echo "=== Installing Pake CLI ==="
+          npm install -g pake-cli@latest 2>&1 || echo "NPM install failed!"
+          echo "=== Checking Pake version ==="
+          pake --version 2>&1 || echo "Pake not found!"
+          which pake || echo "Pake not in PATH!"
+      
+      - name: Install System Dependencies
+        run: |
+          echo "=== Installing system deps ==="
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-0 \
+            libwebkit2gtk-4.0-37 \
+            libappindicator3-1 \
+            librsvg2-common \
+            libxdo-dev \
+            wget \
+            ca-certificates 2>&1 | tail -20
+          echo "=== Done ==="
+      
+      - name: Test Pake Build
+        run: |
+          echo "=== Testing Pake with easydoesit.de ==="
+          pake "https://easydoesit.de" --name "Test" --width 1400 --height 900 2>&1 || echo "BUILD FAILED!"
+          echo "=== Checking output ==="
+          ls -la ./output/ 2>&1 || echo "No output directory!"
+      
+      - name: Upload Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-logs
+          path: |
+            /home/runner/work/Pake/Pake/
+          retention-days: 7
