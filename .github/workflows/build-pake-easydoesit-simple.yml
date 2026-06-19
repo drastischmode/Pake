@@ -26,31 +26,16 @@ jobs:
       
       - name: Install System Dependencies
         run: |
-          echo "🔧 Installing system dependencies for Ubuntu 24.04..."
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq \
+          echo "🔧 Installing system dependencies..."
+          sudo apt-get update
+          sudo apt-get install -y \
             libgtk-3-0 \
-            libwebkit2gtk-4.1-0 \
+            libwebkit2gtk-4.0-37 \
             libappindicator3-1 \
             librsvg2-common \
             libxdo-dev \
             wget \
-            ca-certificates \
-            libx11-xcb1 \
-            libnss3 \
-            libatk-bridge2.0-0 \
-            libdrm2 \
-            libxkbcommon0 \
-            libgbm1 \
-            libasound2 || {
-            echo "⚠️ Some packages may not be available, trying fallback..."
-            sudo apt-get install -y -qq \
-              libgtk-3-0 \
-              libwebkit2gtk-4.0-37 \
-              libappindicator3-1 \
-              librsvg2-common \
-              libxdo-dev
-          }
+            ca-certificates
           echo "✅ Dependencies installed"
       
       - name: Install pake-cli
