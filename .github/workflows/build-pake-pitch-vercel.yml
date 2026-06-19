@@ -24,7 +24,7 @@ jobs:
             librsvg2-common \
             libxdo-dev \
             libgbm1 \
-            libasound2
+            libasound2t64
       
       - name: Install Pake CLI
         run: npm install -g pake-cli
