@@ -1,0 +1,51 @@
+name: Build Pake - Pitch Platform
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Website URL'
+        required: true
+        default: 'https://pitch-platform.vercel.app'
+      name:
+        description: 'App Name'
+        required: true
+        default: 'PitchPlatform'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-0 \
+            libwebkit2gtk-4.0-37 \
+            libappindicator3-1 \
+            librsvg2-common \
+            libxdo-dev
+      
+      - name: Install Pake CLI
+        run: npm install -g pake-cli
+      
+      - name: Build App
+        run: |
+          echo "Building: ${{ inputs.name }}"
+          echo "URL: ${{ inputs.url }}"
+          pake ${{ inputs.url }} --name ${{ inputs.name }} --width 1400 --height 900
+          ls -lh ./output/
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.name }}-app
+          path: ./output/
