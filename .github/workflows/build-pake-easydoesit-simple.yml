@@ -43,7 +43,9 @@ jobs:
             librsvg2-common \
             libxdo-dev \
             wget \
-            ca-certificates 2>&1 | tail -20
+            ca-certificates \
+            xvfb \
+            xvfb-run 2>&1 | tail -20
           echo "=== Done ==="
       
       - name: Build
@@ -55,8 +57,8 @@ jobs:
           # Create output directory
           mkdir -p ./output
           
-          # Build with pake
-          pake "${{ inputs.url }}" \
+          # Build with pake using xvfb for headless display
+          xvfb-run -a pake "${{ inputs.url }}" \
             --name "${{ inputs.name }}" \
             --output ./output 2>&1 || {
             echo "❌ Pake build failed!"
