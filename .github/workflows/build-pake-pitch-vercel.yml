@@ -19,19 +19,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             libgtk-3-0 \
-            libwebkit2gtk-4.0-37 \
+            libwebkit2gtk-4.1-0 \
             libappindicator3-1 \
             librsvg2-common \
-            libxdo-dev
+            libxdo-dev \
+            libgbm1 \
+            libasound2
       
       - name: Install Pake CLI
         run: npm install -g pake-cli
       
-      - name: Build Pitch Vercel App
+      - name: Build Pitch Vercel Login App
         run: |
-          echo "Building: Pitch Vercel"
-          echo "URL: https://pitch-easy-wp.vercel.app/"
-          pake "https://pitch-easy-wp.vercel.app/" --name PitchVercel --width 1400 --height 900
+          echo "Building: Pitch Vercel (Login App)"
+          echo "URL: https://pitch-easy-wp.vercel.app/admin/pitches"
+          pake "https://pitch-easy-wp.vercel.app/admin/pitches" --name PitchVercel --width 1400 --height 900
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
