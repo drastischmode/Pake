@@ -28,62 +28,57 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
       
-      - name: Install dependencies
+      - name: Install Pake CLI
         run: |
-          echo "Installing pake-cli..."
+          echo "Installing Pake CLI..."
           npm install -g pake-cli@latest
-          echo "Verifying installation..."
-          pake --version || exit 1
-          echo "Node version: $(node --version)"
-          echo "NPM version: $(npm --version)"
+          pake --version
+          echo "Pake installed successfully!"
       
-      - name: Build Pake App
+      - name: Install System Dependencies
         run: |
-          echo "==================================="
-          echo "Building Pake App"
-          echo "==================================="
-          echo "Name: ${{ inputs.name }}"
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-0 \
+            libwebkit2gtk-4.0-37 \
+            libappindicator3-1 \
+            librsvg2-common \
+            libxdo-dev \
+            wget \
+            ca-certificates
+          echo "System dependencies installed"
+      
+      - name: Build App
+        run: |
+          echo "Building: ${{ inputs.name }}"
           echo "URL: ${{ inputs.url }}"
           echo "Size: ${{ inputs.width }}x${{ inputs.height }}"
-          echo "==================================="
           
-          # Try to build
           pake "${{ inputs.url }}" \
             --name "${{ inputs.name }}" \
-            --width "${{ inputs.width }}" \
-            --height "${{ inputs.height }}" \
-            --hide-title-bar \
-            -o ./output
+            --width ${{ inputs.width }} \
+            --height ${{ inputs.height }}
           
-          echo "==================================="
-          echo "Build completed!"
-          echo "==================================="
-          
-          # List output files
-          ls -la ./output/ || echo "No output directory found"
+          echo "Build complete!"
+          ls -la ./output/
       
-      - name: Upload artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.name }}-app
           path: ./output/
           retention-days: 30
-          if-no-files-found: error
       
-      - name: Build summary
+      - name: Build Summary
         run: |
-          echo "## ✅ Build Complete!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**App:** ${{ inputs.name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** ${{ inputs.url }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Size:** ~5MB" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Download the artifact from the Actions tab!" >> $GITHUB_STEP_SUMMARY
+          echo "✅ BUILD SUCCESSFUL!"
+          echo "App: ${{ inputs.name }}"
+          echo "URL: ${{ inputs.url }}"
+          echo "Download artifact from Actions tab"
