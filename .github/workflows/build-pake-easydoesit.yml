@@ -32,10 +32,19 @@ jobs:
           node-version: '20'
       
       - name: Install Pake CLI
-        run: npm install -g pake-cli
+        run: npm install -g pake-cli@latest
+      
+      - name: Verify Pake Installation
+        run: pake --version
       
       - name: Build App
-        run: pake ${{ inputs.url }} --name ${{ inputs.name }} --width ${{ inputs.width }} --height ${{ inputs.height }}
+        run: |
+          echo "Building: ${{ inputs.name }}"
+          echo "URL: ${{ inputs.url }}"
+          pake ${{ inputs.url }} --name ${{ inputs.name }} --width ${{ inputs.width }} --height ${{ inputs.height }} || {
+            echo "Pake build failed, trying alternative..."
+            exit 1
+          }
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
