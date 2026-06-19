@@ -26,22 +26,61 @@ jobs:
       
       - name: Install Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
+          echo "🔧 Installing system dependencies for Ubuntu 24.04..."
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
             libgtk-3-0 \
-            libwebkit2gtk-4.0-37 \
+            libwebkit2gtk-4.1-0 \
             libappindicator3-1 \
             librsvg2-common \
-            libxdo-dev
+            libxdo-dev \
+            wget \
+            ca-certificates \
+            libx11-xcb1 \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxkbcommon0 \
+            libgbm1 \
+            libasound2 || {
+            echo "⚠️ Some packages may not be available, trying fallback..."
+            sudo apt-get install -y -qq \
+              libgtk-3-0 \
+              libwebkit2gtk-4.0-37 \
+              libappindicator3-1 \
+              librsvg2-common \
+              libxdo-dev
+          }
+          echo "✅ Dependencies installed"
       
       - name: Install Pake CLI
         run: npm install -g pake-cli
       
       - name: Build App
         run: |
-          echo "Building: ${{ inputs.name }}"
+          echo "🚀 Building: ${{ inputs.name }}"
           echo "URL: ${{ inputs.url }}"
-          pake ${{ inputs.url }} --name ${{ inputs.name }} --width 1400 --height 900
+          echo "Size: 1400x900"
+          echo ""
+          
+          # Create output directory
+          mkdir -p ./output
+          
+          # Build with pake
+          pake "${{ inputs.url }}" \
+            --name "${{ inputs.name }}" \
+            --width 1400 \
+            --height 900 \
+            --output ./output || {
+            echo "❌ Pake build failed!"
+            echo "Checking output directory..."
+            ls -la ./output/ 2>&1 || echo "No output directory"
+            exit 1
+          }
+          
+          echo ""
+          echo "✅ Build complete!"
+          echo "Output files:"
           ls -lh ./output/
       
       - name: Upload Artifact

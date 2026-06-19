@@ -15,23 +15,79 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
+      
+      - name: Install System Dependencies
+        run: |
+          echo "🔧 Installing system dependencies for Ubuntu 24.04..."
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libgtk-3-0 \
+            libwebkit2gtk-4.1-0 \
+            libappindicator3-1 \
+            librsvg2-common \
+            libxdo-dev \
+            wget \
+            ca-certificates \
+            libx11-xcb1 \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxkbcommon0 \
+            libgbm1 \
+            libasound2 || {
+            echo "⚠️ Some packages may not be available, trying fallback..."
+            sudo apt-get install -y -qq \
+              libgtk-3-0 \
+              libwebkit2gtk-4.0-37 \
+              libappindicator3-1 \
+              librsvg2-common \
+              libxdo-dev
+          }
+          echo "✅ Dependencies installed"
       
       - name: Install pake-cli
-        run: npm install -g pake-cli@latest
+        run: |
+          echo "📦 Installing Pake CLI..."
+          npm install -g pake-cli@latest
+          echo "✅ Pake CLI installed"
+          pake --version
       
       - name: Build
         run: |
-          pake ${{ inputs.url }} --name ${{ inputs.name }}
+          echo "🚀 Building: ${{ inputs.name }}"
+          echo "URL: ${{ inputs.url }}"
+          echo ""
+          
+          # Create output directory
+          mkdir -p ./output
+          
+          # Build with pake
+          pake "${{ inputs.url }}" \
+            --name "${{ inputs.name }}" \
+            --output ./output || {
+            echo "❌ Pake build failed!"
+            echo "Checking output directory..."
+            ls -la ./output/ 2>&1 || echo "No output directory"
+            exit 1
+          }
+          
+          echo ""
+          echo "✅ Build complete!"
+          echo "Output files:"
+          ls -lh ./output/
       
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.name }}-app
           path: ./output/
+          retention-days: 30
+          if-no-files-found: error
