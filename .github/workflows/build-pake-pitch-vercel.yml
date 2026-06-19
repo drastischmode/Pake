@@ -21,7 +21,7 @@ jobs:
             libgtk-3-0 \
             libwebkit2gtk-4.1-0 \
             libwebkit2gtk-4.1-dev \
-            libappindicator3-1 \
+            libayatana-appindicator3-1 \
             libayatana-appindicator3-dev \
             librsvg2-common \
             libxdo-dev \
