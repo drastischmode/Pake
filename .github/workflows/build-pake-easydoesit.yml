@@ -1,0 +1,52 @@
+name: Build Pake App - EasyDoesIt
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Website URL'
+        required: true
+        default: 'https://easydoesit.de'
+      name:
+        description: 'App Name'
+        required: true
+        default: 'EasyDoesIt'
+      width:
+        description: 'Window Width'
+        required: false
+        default: '1400'
+      height:
+        description: 'Window Height'
+        required: false
+        default: '900'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Pake CLI
+        run: npm install -g pake-cli
+      
+      - name: Build App
+        run: pake ${{ inputs.url }} --name ${{ inputs.name }} --width ${{ inputs.width }} --height ${{ inputs.height }}
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.name }}-app
+          path: ./output/
+      
+      - name: Build Summary
+        run: |
+          echo "✅ App built successfully!"
+          echo "Download the artifact from the Actions tab"
+          echo "App: ${{ inputs.name }}"
+          echo "URL: ${{ inputs.url }}"
+          echo "Size: ~5MB (instead of ~160MB)"
