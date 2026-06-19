@@ -24,9 +24,17 @@ jobs:
         with:
           node-version: '20'
       
+      - name: Install Pake CLI
+        run: |
+          echo "=== Installing Pake CLI ==="
+          npm install -g pake-cli@latest 2>&1 || echo "NPM install failed!"
+          echo "=== Checking Pake version ==="
+          pake --version 2>&1 || echo "Pake not found!"
+          which pake || echo "Pake not in PATH!"
+      
       - name: Install System Dependencies
         run: |
-          echo "🔧 Installing system dependencies..."
+          echo "=== Installing system deps ==="
           sudo apt-get update
           sudo apt-get install -y \
             libgtk-3-0 \
@@ -35,19 +43,12 @@ jobs:
             librsvg2-common \
             libxdo-dev \
             wget \
-            ca-certificates
-          echo "✅ Dependencies installed"
-      
-      - name: Install pake-cli
-        run: |
-          echo "📦 Installing Pake CLI..."
-          npm install -g pake-cli@latest
-          echo "✅ Pake CLI installed"
-          pake --version
+            ca-certificates 2>&1 | tail -20
+          echo "=== Done ==="
       
       - name: Build
         run: |
-          echo "🚀 Building: ${{ inputs.name }}"
+          echo "=== Building: ${{ inputs.name }} ==="
           echo "URL: ${{ inputs.url }}"
           echo ""
           
@@ -57,7 +58,7 @@ jobs:
           # Build with pake
           pake "${{ inputs.url }}" \
             --name "${{ inputs.name }}" \
-            --output ./output || {
+            --output ./output 2>&1 || {
             echo "❌ Pake build failed!"
             echo "Checking output directory..."
             ls -la ./output/ 2>&1 || echo "No output directory"
@@ -65,7 +66,7 @@ jobs:
           }
           
           echo ""
-          echo "✅ Build complete!"
+          echo "=== Build complete! ==="
           echo "Output files:"
           ls -lh ./output/
       
