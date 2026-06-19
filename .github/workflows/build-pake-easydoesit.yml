@@ -35,39 +35,65 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       
-      - name: Install Pake CLI
-        run: |
-          echo "Installing Pake CLI..."
-          npm install -g pake-cli@latest
-          pake --version
-          echo "Pake installed successfully!"
-      
       - name: Install System Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
+          echo "🔧 Installing system dependencies..."
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
             libgtk-3-0 \
             libwebkit2gtk-4.0-37 \
             libappindicator3-1 \
             librsvg2-common \
             libxdo-dev \
             wget \
-            ca-certificates
-          echo "System dependencies installed"
+            ca-certificates \
+            libx11-xcb1 \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxkbcommon0 \
+            libgbm1 \
+            libasound2
+          echo "✅ System dependencies installed"
+      
+      - name: Install Pake CLI
+        run: |
+          echo "📦 Installing Pake CLI..."
+          npm install -g pake-cli@latest
+          echo "✅ Pake CLI installed"
+          pake --version
+      
+      - name: Verify URL Accessibility
+        run: |
+          echo "🔍 Testing URL: ${{ inputs.url }}"
+          curl -sI "${{ inputs.url }}" | head -5 || echo "⚠️ URL may be blocked"
       
       - name: Build App
         run: |
-          echo "Building: ${{ inputs.name }}"
+          echo "🚀 Building: ${{ inputs.name }}"
           echo "URL: ${{ inputs.url }}"
           echo "Size: ${{ inputs.width }}x${{ inputs.height }}"
+          echo ""
           
+          # Create output directory
+          mkdir -p ./output
+          
+          # Build with pake
           pake "${{ inputs.url }}" \
             --name "${{ inputs.name }}" \
             --width ${{ inputs.width }} \
-            --height ${{ inputs.height }}
+            --height ${{ inputs.height }} \
+            --output ./output || {
+            echo "❌ Pake build failed!"
+            echo "Checking output directory..."
+            ls -la ./output/ 2>&1 || echo "No output directory"
+            exit 1
+          }
           
-          echo "Build complete!"
-          ls -la ./output/
+          echo ""
+          echo "✅ Build complete!"
+          echo "Output files:"
+          ls -lh ./output/
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -75,10 +101,17 @@ jobs:
           name: ${{ inputs.name }}-app
           path: ./output/
           retention-days: 30
+          if-no-files-found: error
       
       - name: Build Summary
         run: |
+          echo "=============================================="
           echo "✅ BUILD SUCCESSFUL!"
+          echo "=============================================="
           echo "App: ${{ inputs.name }}"
           echo "URL: ${{ inputs.url }}"
-          echo "Download artifact from Actions tab"
+          echo "Size: ${{ inputs.width }}x${{ inputs.height }}"
+          echo ""
+          echo "📥 Download artifact from Actions tab:"
+          echo "   https://github.com/${{ github.repository }}/actions"
+          echo "=============================================="
